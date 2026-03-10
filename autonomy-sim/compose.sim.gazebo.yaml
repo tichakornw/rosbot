@@ -1,0 +1,78 @@
+x-gpu-config:
+  &gpu-config
+  runtime: nvidia
+  env_file: .env.gpu
+
+services:
+
+  rosbot:
+    image: husarion/rosbot-gazebo:humble-0.13.0-20240115
+    <<: *gpu-config
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    environment:
+      - ROBOT_NAMESPACE=${ROBOT_NAMESPACE}
+    command: >
+      ros2 launch rosbot_gazebo simulation.launch.py
+        mecanum:=${MECANUM:-True}
+        namespace:=${ROBOT_NAMESPACE}
+
+  navigation:
+    # Build custom image with straightline planner
+    build:
+      context: .
+      dockerfile: Dockerfile.navigation
+    image: rosbot-navigation-custom:latest
+    <<: *gpu-config
+    volumes:
+      - ./config/nav2_${CONTROLLER:-rpp}_params.yaml:/params.yaml
+      - ./maps:/maps
+    environment:
+      - ROBOT_NAMESPACE=${ROBOT_NAMESPACE}
+      - SAVE_MAP_PERIOD=${SAVE_MAP_PERIOD}
+    command: >
+      ros2 launch /husarion_utils/bringup_launch.py
+        slam:=${SLAM:-True}
+        params_file:=/params.yaml
+        map:=/maps/map.yaml
+        use_sim_time:=True
+
+  yolo:
+    image: rosbot-navigation-custom:latest
+    <<: *gpu-config
+    depends_on:
+      rosbot: { condition: service_healthy }
+      navigation: { condition: service_started }
+    volumes:
+      - ./maps:/maps
+    environment:
+      - ROBOT_NAMESPACE=${ROBOT_NAMESPACE}
+    command: >
+      ros2 launch yolo_bringup yolo.launch.py
+        model:=yolov8n.pt
+        device:=cuda:0
+        threshold:=0.6
+        input_image_topic:=/${ROBOT_NAMESPACE}/camera/image
+        input_depth_topic:=/${ROBOT_NAMESPACE}/camera/depth_image
+        input_depth_info_topic:=/${ROBOT_NAMESPACE}/camera/camera_info
+        depth_image_units_divisor:=1
+        namespace:=${ROBOT_NAMESPACE}/yolo
+        use_tracking:=True
+        use_3d:=True
+        target_frame:=odom
+        use_debug:=True
+
+  rviz:
+    image: husarion/rviz2:humble-11.2.6-20230809
+    <<: *gpu-config
+    depends_on:
+      rosbot: { condition: service_healthy }
+      navigation: { condition: service_healthy }
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ./config/rosbot.rviz:/default.rviz
+    command: >
+      rviz2 -d /default.rviz --ros-args
+        -r /tf:=tf
+        -r /tf_static:=tf_static
+        -r __ns:=/${ROBOT_NAMESPACE}

@@ -1,0 +1,10 @@
+<library path="nav2_zerocostmap_plugin_core">
+  <class type="nav2_zerocostmap_plugin::ZeroLayer" base_class_type="nav2_costmap_2d::Layer">
+    <description>
+      A zero-cost costmap layer that performs no calculations.
+      All cells are set to FREE_SPACE (cost = 0), making the entire
+      costmap completely traversable. This is useful as a minimal
+      placeholder when you want to bypass costmap-based planning.
+    </description>
+  </class>
+</library>

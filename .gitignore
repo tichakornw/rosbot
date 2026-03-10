@@ -1,0 +1,10 @@
+compile_flags.txt
+build/*
+.cache/*
+test/__pycache__/*
+*/build/*
+*/test/__pycache__/*
+*/.cache/*
+*/.clangd
+*/testing-env/*
+*/.vscode/*

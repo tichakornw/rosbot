@@ -1,0 +1,9 @@
+<library path="nav2_multicost_planner_plugin">
+  <class type="nav2_multicost_planner::MulticostPlanner" base_class_type="nav2_core::GlobalPlanner">
+    <description>
+      DIS FINNA WORK This is a multicost path planner plugin that uses Dijkstra's algorithm 
+      with multiple objectives (distance and obstacle cost) to find optimal paths.
+      It supports lexicographic optimization for multi-objective planning.
+    </description>
+  </class>
+</library>

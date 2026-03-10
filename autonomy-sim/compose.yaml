@@ -1,0 +1,119 @@
+x-common-config:
+  &common-config
+  network_mode: host
+  ipc: host
+  restart: unless-stopped
+
+x-dds-envs:
+  &dds-envs
+  env_file: .env.dds
+
+services:
+
+  ros2router:
+    image: husarnet/ros2router:1.6.3
+    <<: *common-config
+    volumes:
+      - ./filter.yaml:/filter.yaml
+    environment:
+      - USER
+      - ROBOT_NAMESPACE
+      # ==========================
+      # envs for Husarnet setup
+      # ==========================
+      # - DISCOVERY_SERVER_LISTENING_PORT=11811
+      # - DISCOVERY_SERVER_ID=0
+      # ==========================
+      # envs for LAN setup
+      # ==========================
+      - ROS_LOCALHOST_ONLY=0
+      - HUSARNET_PARTICIPANT_ENABLED=false
+
+  rosbot:
+    image: husarion/rosbot:humble-0.13.1-20240201
+    <<:
+      - *common-config
+      - *dds-envs
+    devices:
+      - ${SERIAL_PORT:?err}
+    environment:
+      - ROBOT_NAMESPACE
+    command: >
+      ros2 launch rosbot_bringup combined.launch.py
+        mecanum:=${MECANUM:-False}
+        serial_port:=$SERIAL_PORT
+        serial_baudrate:=576000
+
+  rplidar:
+    image: husarion/rplidar:humble-1.0.1-20240104
+    <<:
+      - *common-config
+      - *dds-envs
+    devices:
+      - /dev/ttyRPLIDAR:/dev/ttyUSB0
+    environment:
+      - ROBOT_NAMESPACE
+    command: >
+      ros2 launch /husarion_utils/rplidar.launch.py
+        serial_baudrate:=${LIDAR_BAUDRATE:-256000}
+        serial_port:=/dev/ttyUSB0
+
+  astra:
+    image: husarion/astra:humble
+    <<: *common-config
+    devices:
+      - /dev/bus/usb/
+    command: >
+      ros2 launch /husarion_utils/astra.launch.py
+
+  navigation:
+    build:
+      context: .
+      dockerfile: Dockerfile.navigation
+    image: rosbot-navigation-custom:latest
+    <<:
+      - *common-config
+      - *dds-envs
+    depends_on:
+      rplidar: { condition: service_healthy }
+      rosbot: { condition: service_healthy }
+    volumes:
+      - ./config/nav2_${CONTROLLER:-rpp}_params.yaml:/params.yaml
+      - ./maps:/maps
+    environment:
+      - SAVE_MAP_PERIOD
+      - ROBOT_NAMESPACE
+    command: >
+      ros2 launch /husarion_utils/bringup_launch.py
+        slam:=${SLAM:-True}
+        params_file:=/params.yaml
+        map:=/maps/map.yaml
+        use_sim_time:=False
+
+  yolo:
+    image: rosbot-navigation-custom:latest
+    <<: 
+      - *common-config
+      - *dds-envs
+    depends_on:
+      rosbot: { condition: service_healthy }
+      navigation: { condition: service_started }
+    volumes:
+      - ./maps:/maps
+      - ./yolo_models:/yolo_models
+    environment:
+      - ROBOT_NAMESPACE=${ROBOT_NAMESPACE}
+    command: >
+      ros2 launch yolo_bringup yolo.launch.py
+        model:=/yolo_models/yolov8n.pt
+        device:=cuda:0
+        threshold:=0.6
+        input_image_topic:=/${ROBOT_NAMESPACE}/camera/image
+        input_depth_topic:=/${ROBOT_NAMESPACE}/camera/depth_image
+        input_depth_info_topic:=/${ROBOT_NAMESPACE}/camera/camera_info
+        depth_image_units_divisor:=1
+        namespace:=${ROBOT_NAMESPACE}/yolo
+        use_tracking:=True
+        use_3d:=False
+        target_frame:=odom
+        use_debug:=True

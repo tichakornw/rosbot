@@ -1,0 +1,79 @@
+FROM husarion/navigation2:humble-1.1.12-20240123
+
+# Completely bypass GPG checking to avoid GPG key errors
+RUN echo 'APT::Get::AllowUnauthenticated "true";' > /etc/apt/apt.conf.d/99allow-unauth && \
+    echo 'Acquire::AllowInsecureRepositories "true";' >> /etc/apt/apt.conf.d/99allow-unauth && \
+    echo 'Acquire::AllowDowngradeToInsecureRepositories "true";' >> /etc/apt/apt.conf.d/99allow-unauth
+
+RUN apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* && \
+    apt-get update || apt-get update --allow-insecure-repositories
+
+
+RUN apt-get install -y --allow-unauthenticated \
+    python3-colcon-common-extensions \
+    build-essential \
+    cmake \
+    git \
+    python3-pip \
+    python3-opencv \
+    && rm -rf /var/lib/apt/lists/*
+
+# YOLO dependencies
+COPY requirements.txt /tmp/requirements.txt
+RUN pip3 install --no-cache-dir -r /tmp/requirements.txt && \
+    rm /tmp/requirements.txt
+
+WORKDIR /ros2_ws/src
+
+# Copy the packages into the workspace
+COPY nav2_multicost_planner /ros2_ws/src/nav2_multicost_planner
+COPY nav2_pure_pursuit_controller /ros2_ws/src/nav2_pure_pursuit_controller
+COPY yolo_msgs /ros2_ws/src/yolo_msgs
+COPY yolo_ros /ros2_ws/src/yolo_ros
+COPY yolo_bringup /ros2_ws/src/yolo_bringup
+
+# Build the workspace
+WORKDIR /ros2_ws
+RUN . /opt/ros/humble/setup.sh && \
+    colcon build --packages-up-to nav2_multicost_planner nav2_pure_pursuit_controller yolo_msgs yolo_ros yolo_bringup \
+    --cmake-args -DCMAKE_BUILD_TYPE=Release \
+    && rm -rf build log
+
+# # Create entrypoint script that sources both workspaces
+# RUN echo '#!/bin/bash\n\
+# set -e\n\
+# \n\
+# # Source the original Husarion setup if it exists\n\
+# if [ -f "/ros_entrypoint.sh" ]; then\n\
+#     source /ros_entrypoint.sh\n\
+# else\n\
+#     source /opt/ros/humble/setup.bash\n\
+# fi\n\
+# \n\
+# # Source our custom workspace\n\
+# if [ -f "/ros2_ws/install/setup.bash" ]; then\n\
+#     source /ros2_ws/install/setup.bash\n\
+# fi\n\
+# \n\
+# exec "$@"' > /entrypoint.sh && \
+#     chmod +x /entrypoint.sh
+
+# # Source workspace in bashrc
+# RUN echo "source /ros2_ws/install/setup.bash" >> /root/.bashrc
+
+# WORKDIR /
+
+# ENTRYPOINT ["/entrypoint.sh"]
+# CMD ["bash"]
+
+# Manually creating entrypoint from base img
+RUN printf '#!/usr/bin/env bash\nset -e\n\noutput=$(husarnet-dds singleshot) || true\nif [[ "$HUSARNET_DDS_DEBUG" == "TRUE" ]]; then\n  echo "$output"\nfi\n\nsource "/opt/ros/$ROS_DISTRO/setup.bash"\ntest -f "/ros2_ws/install/setup.bash" && source "/ros2_ws/install/setup.bash"\n\nif [ -z "$USER" ]; then\n    export USER=root\nelif ! id "$USER" &>/dev/null; then\n    useradd -ms /bin/bash "$USER"\nfi\n\nif [ $# -eq 0 ]; then\n    exec gosu $USER /bin/bash\nelse\n    exec gosu $USER \"$@\"\nfi\n' > /entrypoint.sh && \
+    sed -i 's/\r$//' /entrypoint.sh && \
+    chmod +x /entrypoint.sh
+
+RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc && \
+    echo "source /ros2_ws/install/setup.bash" >> /root/.bashrc
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["bash"]
