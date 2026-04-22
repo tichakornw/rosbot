@@ -2,7 +2,30 @@
 
 ### SETUP
 
-An example of how to set up multicost and compute is in planning-dev/examples/example_setup.cpp
+The ROS-free component contract layer lives in `autonomy-sim/autonomy_contracts`.
+Plain C++ planning, control, and perception libraries should implement those
+contracts and register components by name. `autonomy-sim/autonomy_ros2_wrapper`
+keeps ROS 2/Nav2 integration internal and adapts the selected components from
+YAML.
+
+Default example components live in `autonomy-sim/external_components/reference_components`.
+Add external GitHub links in the labeled Planning, Control, and Perception sections of
+`autonomy-sim/external_components/component_manifest.cmake`.
+
+### Component Links
+
+GitHub READMEs cannot save editable text boxes into the repository, so the real
+editable boxes live in `autonomy-sim/external_components/component_manifest.cmake`.
+
+| Component area | Paste the external GitHub link in |
+| --- | --- |
+| Planning | `PLANNING COMPONENT LINK` |
+| Control | `CONTROL COMPONENT LINK` |
+| Perception | `PERCEPTION COMPONENT LINK` |
+
+Each linked repo must expose a CMake library target and register one or more
+components with `REGISTER_PLANNER_COMPONENT`, `REGISTER_CONTROLLER_COMPONENT`,
+or `REGISTER_PERCEPTION_COMPONENT`.
 
 ### SIMULATION
 

@@ -26,9 +26,10 @@ RUN pip3 install --no-cache-dir -r /tmp/requirements.txt && \
 
 WORKDIR /ros2_ws/src
 
-# Copy the packages into the workspace
-COPY nav2_multicost_planner /ros2_ws/src/nav2_multicost_planner
-COPY nav2_pure_pursuit_controller /ros2_ws/src/nav2_pure_pursuit_controller
+# Copy the wrapper, contracts, optional external components, and perception packages.
+COPY autonomy_contracts /ros2_ws/src/autonomy_contracts
+COPY autonomy_ros2_wrapper /ros2_ws/src/autonomy_ros2_wrapper
+COPY external_components /ros2_ws/src/external_components
 COPY yolo_msgs /ros2_ws/src/yolo_msgs
 COPY yolo_ros /ros2_ws/src/yolo_ros
 COPY yolo_bringup /ros2_ws/src/yolo_bringup
@@ -36,7 +37,7 @@ COPY yolo_bringup /ros2_ws/src/yolo_bringup
 # Build the workspace
 WORKDIR /ros2_ws
 RUN . /opt/ros/humble/setup.sh && \
-    colcon build --packages-up-to nav2_multicost_planner nav2_pure_pursuit_controller yolo_msgs yolo_ros yolo_bringup \
+    colcon build --packages-up-to autonomy_ros2_wrapper yolo_msgs yolo_ros yolo_bringup \
     --cmake-args -DCMAKE_BUILD_TYPE=Release \
     && rm -rf build log
 

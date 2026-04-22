@@ -8,3 +8,4 @@ test/__pycache__/*
 */.clangd
 */testing-env/*
 */.vscode/*
+.vscode/*

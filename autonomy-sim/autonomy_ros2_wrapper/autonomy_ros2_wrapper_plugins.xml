@@ -1,0 +1,14 @@
+<library path="autonomy_ros2_wrapper_plugins">
+  <class
+    name="autonomy_ros2_wrapper/ContractPlanner"
+    type="autonomy_ros2_wrapper::ContractPlanner"
+    base_class_type="nav2_core::GlobalPlanner">
+    <description>Nav2 global planner adapter for ROS-free C++ planner components.</description>
+  </class>
+  <class
+    name="autonomy_ros2_wrapper/ContractController"
+    type="autonomy_ros2_wrapper::ContractController"
+    base_class_type="nav2_core::Controller">
+    <description>Nav2 controller adapter for ROS-free C++ controller components.</description>
+  </class>
+</library>

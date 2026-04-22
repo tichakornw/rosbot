@@ -122,11 +122,9 @@ controller_server:
     controller_plugins: ["FollowPath"]
 
     FollowPath:
-      plugin: "nav2_pure_pursuit_controller::PurePursuitController"
-      debug_trajectory_details: True
-      desired_linear_vel: 0.2
-      lookahead_dist: 0.4
-      max_angular_vel: 1.0
+      plugin: "autonomy_ros2_wrapper/ContractController"
+      controller_component: "pure_pursuit_controller"
+      dynamic_obstacles_topic: "/rosbot2r/yolo/dgb_bb_markers"
       transform_tolerance: 1.0
 
 controller_server_rclcpp_node:
@@ -242,31 +240,10 @@ planner_server:
 
     planner_plugins: [GridBased]
     GridBased:
-      plugin: "nav2_multicost_planner::MulticostPlanner"
-      # algorithm_name: "iterated_dijkstra"
-      algorithm_name: "bfs"
-
-      
-      # distance_weight: 1.0
-      # cost_weight: 1.0
-      # use_obstacle_cost: true
-
-      # min_obstacle_clearance: 0.2
-      min_obstacle_clearance: 0.0
-      
-      use_yolo_detections: true
-      yolo_detection_cost_weight: 200.0
-      yolo_detection_inflation_radius: 0.8
-      yolo_markers_topic: "/rosbot2r/yolo/dgb_bb_markers"
-
-      # use_yolo_detections: true
-      # yolo_detection_cost_weight: 150.0  # High cost to strongly avoid detected objects
-      # yolo_detection_inflation_radius: 0.6  # Inflate detected objects by 60cm
-      # yolo_detections_topic: "/rosbot2r/yolo/detections_3d"
-      # plugin: 'nav2_navfn_planner/NavfnPlanner' # In Iron and older versions, "/" was used instead of "::"
-      # use_astar: True
-      # allow_unknown: True
-      # tolerance: 1.0
+      plugin: "autonomy_ros2_wrapper/ContractPlanner"
+      planner_component: "bfs_grid_planner"
+      dynamic_obstacles_topic: "/rosbot2r/yolo/dgb_bb_markers"
+      allow_unknown: true
 
 planner_server_rclcpp_node:
   ros__parameters:

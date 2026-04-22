@@ -1,0 +1,44 @@
+# autonomy_ros2_wrapper
+
+`autonomy_ros2_wrapper` keeps ROS 2 internal while exposing ROS-free C++ component contracts.
+
+- `ContractPlanner` is a Nav2 global planner plugin that calls a registered planner component.
+- `ContractController` is a Nav2 controller plugin that calls a registered controller component.
+- `perception_wrapper_node` is a lifecycle node that calls a registered perception component and publishes internal obstacle markers.
+
+Default reference components live outside the wrapper in
+`external_components/reference_components` and compile into `autonomy_reference_components`:
+
+- `bfs_grid_planner`
+- `pure_pursuit_controller`
+- `noop_perception`
+
+Additional plain C++ component libraries can be linked with the CMake cache variable
+`AUTONOMY_EXTERNAL_COMPONENT_LIBRARIES`. Those libraries must register components with
+the macros from `autonomy_contracts`.
+
+For local sibling repos, place them under `autonomy-sim/external_components/` and wire
+their CMake target in `external_components/component_manifest.cmake`.
+
+The perception wrapper is available as an optional Docker Compose profile:
+
+```bash
+docker compose --profile contract_perception -f compose.sim.gazebo.yaml up
+```
+
+The current default keeps YOLO as an internal ROS perception source. Nav2 configs
+consume its marker output at `/rosbot2r/yolo/dgb_bb_markers`. To consume the
+contract perception wrapper instead, set `dynamic_obstacles_topic` in the
+planner/controller YAML to `/rosbot2r/autonomy_wrapper/dynamic_obstacles`.
+
+Nav2 YAML selects components with:
+
+```yaml
+GridBased:
+  plugin: "autonomy_ros2_wrapper/ContractPlanner"
+  planner_component: "bfs_grid_planner"
+
+FollowPath:
+  plugin: "autonomy_ros2_wrapper/ContractController"
+  controller_component: "pure_pursuit_controller"
+```

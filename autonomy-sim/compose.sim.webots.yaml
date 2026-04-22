@@ -13,7 +13,10 @@ services:
     command: ros2 launch webots_ros2_husarion rosbot_launch.py
 
   navigation:
-    image: husarion/navigation2:humble-1.1.12-20240123
+    build:
+      context: .
+      dockerfile: Dockerfile.navigation
+    image: rosbot-navigation-custom:latest
     <<: *gpu-config
     volumes:
       - ./config/nav2_${CONTROLLER:-rpp}_params.yaml:/params.yaml
@@ -26,6 +29,22 @@ services:
         params_file:=/params.yaml
         map:=/maps/map.yaml
         use_sim_time:=True
+
+  perception_wrapper:
+    image: rosbot-navigation-custom:latest
+    <<: *gpu-config
+    profiles: ["contract_perception"]
+    depends_on:
+      navigation: { condition: service_started }
+    environment:
+      - ROBOT_NAMESPACE=${ROBOT_NAMESPACE:-rosbot2r}
+    command: >
+      ros2 run autonomy_ros2_wrapper perception_wrapper_node --ros-args
+        -p perception_component:=noop_perception
+        -p image_topic:=/${ROBOT_NAMESPACE:-rosbot2r}/camera/image
+        -p depth_topic:=/${ROBOT_NAMESPACE:-rosbot2r}/camera/depth_image
+        -p output_obstacles_topic:=/${ROBOT_NAMESPACE:-rosbot2r}/autonomy_wrapper/dynamic_obstacles
+        -p output_frame:=odom
 
   rviz:
     image: husarion/rviz2:humble-11.2.6-20230809
