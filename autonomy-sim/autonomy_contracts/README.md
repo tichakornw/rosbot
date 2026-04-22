@@ -30,3 +30,26 @@ REGISTER_PERCEPTION_COMPONENT("my_perception", MyPerception)
 ```
 
 The ROS 2 wrapper links component libraries, then selects registered names from YAML.
+
+## Verification
+
+Contracts are checked at compile time. The registration macros call C++17
+`static_assert` checks from `traits.hpp`.
+
+The build fails if a registered class does not:
+
+- use the exact required method name
+- accept the exact required input type by `const&`
+- return the exact required output type
+- provide a default constructor
+
+You can also use the traits directly in external component tests:
+
+```cpp
+static_assert(autonomy_contracts::is_planner_component<MyPlanner>::value);
+static_assert(autonomy_contracts::is_controller_component<MyController>::value);
+static_assert(autonomy_contracts::is_perception_component<MyPerception>::value);
+```
+
+At runtime, the wrapper validates the selected YAML component name by asking the
+registry to create it. Unknown names are reported as configuration errors.

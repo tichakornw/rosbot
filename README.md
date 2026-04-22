@@ -65,6 +65,108 @@ Each linked repo must expose the `TARGET` named in the box and register one or
 more components with `REGISTER_PLANNER_COMPONENT`, `REGISTER_CONTROLLER_COMPONENT`,
 or `REGISTER_PERCEPTION_COMPONENT`.
 
+### Contract Verification
+
+External repositories are verified when this repository builds.
+
+The registration macros call C++17 `static_assert` checks from
+`autonomy_contracts`. A linked external repository fails compilation if a
+registered component:
+
+- does not have the exact required method name
+- uses the wrong input type
+- uses the wrong output type
+- is not default constructible
+
+Required signatures:
+
+```cpp
+autonomy_contracts::PlanningOutput2D plan(
+  const autonomy_contracts::PlanningInput2D& input);
+
+autonomy_contracts::ControlOutput2D computeCommand(
+  const autonomy_contracts::ControlInput2D& input);
+
+autonomy_contracts::PerceptionOutput2D process(
+  const autonomy_contracts::PerceptionInput2D& input);
+```
+
+Runtime selection is also checked. If YAML requests a component name that was not
+registered by any linked library, `autonomy_ros2_wrapper` logs the available
+registered names and fails to create that component.
+
+### External Repository Setup
+
+External repositories should be plain C++ CMake projects. They should not include
+ROS 2, Nav2, lifecycle nodes, topics, or ROS messages.
+
+Recommended external repo layout:
+
+```text
+my_planner/
+  CMakeLists.txt
+  include/my_planner/my_planner.hpp
+  src/my_planner.cpp
+```
+
+Minimal `CMakeLists.txt`:
+
+```cmake
+cmake_minimum_required(VERSION 3.15)
+project(my_planner)
+
+add_library(my_planner_lib SHARED
+  src/my_planner.cpp
+)
+
+target_include_directories(my_planner_lib PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
+
+target_link_libraries(my_planner_lib PUBLIC autonomy_contracts)
+```
+
+Minimal planner implementation:
+
+```cpp
+#include "autonomy_contracts/autonomy_contracts.hpp"
+
+class MyPlanner
+{
+public:
+  autonomy_contracts::PlanningOutput2D plan(
+    const autonomy_contracts::PlanningInput2D& input)
+  {
+    autonomy_contracts::PlanningOutput2D output;
+    // Fill output.path.poses here.
+    output.success = true;
+    return output;
+  }
+};
+
+REGISTER_PLANNER_COMPONENT("my_planner", MyPlanner)
+```
+
+Then link the repo from `autonomy-sim/external_components/component_manifest.cmake`:
+
+```cmake
+autonomy_fetch_component(
+  NAME my_planner
+  GIT_REPOSITORY https://github.com/your-org/my-planner.git
+  GIT_TAG main
+  TARGET my_planner_lib
+)
+```
+
+Finally select the registered component name in Nav2 YAML:
+
+```yaml
+GridBased:
+  plugin: "autonomy_ros2_wrapper/ContractPlanner"
+  planner_component: "my_planner"
+```
+
 ### SIMULATION
 
 The ros-autonomy sim contains the codebase for the gazebo simulation of the robot.
