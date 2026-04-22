@@ -1,0 +1,54 @@
+name: Component Links
+description: Submit planning, control, and perception component GitHub links.
+title: "Component links: "
+labels: ["component-links"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form to collect external component links. These fields do not update the build automatically; copy accepted links into `autonomy-sim/external_components/component_manifest.cmake`.
+  - type: input
+    id: planning_repository
+    attributes:
+      label: Planning Component GitHub Link
+      description: Controls global path planning from GridMap2D + start/goal to Path2D.
+      placeholder: https://github.com/your-org/my-planner.git
+    validations:
+      required: false
+  - type: input
+    id: planning_target
+    attributes:
+      label: Planning CMake Target
+      placeholder: my_planner_lib
+    validations:
+      required: false
+  - type: input
+    id: control_repository
+    attributes:
+      label: Control Component GitHub Link
+      description: Controls local velocity command generation from Path2D + robot state.
+      placeholder: https://github.com/your-org/my-controller.git
+    validations:
+      required: false
+  - type: input
+    id: control_target
+    attributes:
+      label: Control CMake Target
+      placeholder: my_controller_lib
+    validations:
+      required: false
+  - type: input
+    id: perception_repository
+    attributes:
+      label: Perception Component GitHub Link
+      description: Controls image/depth processing into detections and dynamic obstacles.
+      placeholder: https://github.com/your-org/my-perception.git
+    validations:
+      required: false
+  - type: input
+    id: perception_target
+    attributes:
+      label: Perception CMake Target
+      placeholder: my_perception_lib
+    validations:
+      required: false

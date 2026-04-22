@@ -12,19 +12,57 @@ Default example components live in `autonomy-sim/external_components/reference_c
 Add external GitHub links in the labeled Planning, Control, and Perception sections of
 `autonomy-sim/external_components/component_manifest.cmake`.
 
-### Component Links
+### Component Link Boxes
 
-GitHub READMEs cannot save editable text boxes into the repository, so the real
-editable boxes live in `autonomy-sim/external_components/component_manifest.cmake`.
+GitHub does not allow README pages to save real editable text boxes back into the
+repo. The boxes below show exactly where each link belongs. To make a real change,
+edit `autonomy-sim/external_components/component_manifest.cmake` and paste the
+GitHub URL into the matching labeled section.
 
-| Component area | Paste the external GitHub link in |
-| --- | --- |
-| Planning | `PLANNING COMPONENT LINK` |
-| Control | `CONTROL COMPONENT LINK` |
-| Perception | `PERCEPTION COMPONENT LINK` |
+#### Planning Component Link
 
-Each linked repo must expose a CMake library target and register one or more
-components with `REGISTER_PLANNER_COMPONENT`, `REGISTER_CONTROLLER_COMPONENT`,
+Controls global path planning from `GridMap2D + start/goal` to `Path2D`.
+
+```cmake
+# PLANNING COMPONENT LINK
+autonomy_fetch_component(
+  NAME my_planner
+  GIT_REPOSITORY https://github.com/your-org/my-planner.git
+  GIT_TAG main
+  TARGET my_planner_lib
+)
+```
+
+#### Control Component Link
+
+Controls local velocity command generation from `Path2D + robot state`.
+
+```cmake
+# CONTROL COMPONENT LINK
+autonomy_fetch_component(
+  NAME my_controller
+  GIT_REPOSITORY https://github.com/your-org/my-controller.git
+  GIT_TAG main
+  TARGET my_controller_lib
+)
+```
+
+#### Perception Component Link
+
+Controls image/depth processing into detections and dynamic obstacles.
+
+```cmake
+# PERCEPTION COMPONENT LINK
+autonomy_fetch_component(
+  NAME my_perception
+  GIT_REPOSITORY https://github.com/your-org/my-perception.git
+  GIT_TAG main
+  TARGET my_perception_lib
+)
+```
+
+Each linked repo must expose the `TARGET` named in the box and register one or
+more components with `REGISTER_PLANNER_COMPONENT`, `REGISTER_CONTROLLER_COMPONENT`,
 or `REGISTER_PERCEPTION_COMPONENT`.
 
 ### SIMULATION
