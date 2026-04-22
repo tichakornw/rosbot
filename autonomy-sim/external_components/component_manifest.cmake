@@ -20,9 +20,9 @@ autonomy_fetch_component(
 #   TARGET my_planner_lib
 # )
 
-# Requirements for every linked external planner component:
+# Requirements for every linked external planner adapter:
 #
 # Each library target appended to AUTONOMY_EXTERNAL_COMPONENT_LIBRARIES must link
-# autonomy_contracts and register a planner with:
+# autonomy_contracts and register the adapter class with:
 #
-# REGISTER_PLANNER_COMPONENT("my_planner", MyPlanner)
+# REGISTER_PLANNER_COMPONENT("my_planner", MyPlannerAdapter)

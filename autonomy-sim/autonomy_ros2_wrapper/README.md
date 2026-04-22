@@ -12,11 +12,12 @@ The swappable planning reference lives outside the wrapper in
 - `bfs_grid_planner`
 
 Additional plain C++ planner libraries can be linked with the CMake cache variable
-`AUTONOMY_EXTERNAL_COMPONENT_LIBRARIES`. Those libraries must register planner components
-with the macros from `autonomy_contracts`.
+`AUTONOMY_EXTERNAL_COMPONENT_LIBRARIES`. Those libraries must register a planner adapter
+with `REGISTER_PLANNER_COMPONENT`.
 
-For local sibling repos, place them under `autonomy-sim/external_components/` and wire
-their CMake target in `external_components/component_manifest.cmake`.
+For local sibling repos, place them under `autonomy-sim/external_components/`, put the
+adapter registration in that repo's `.cpp` file, and wire its CMake target in
+`external_components/component_manifest.cmake`.
 
 The perception wrapper is available as an optional Docker Compose profile:
 
