@@ -3,7 +3,7 @@
 <package format="3">
   <name>autonomy_ros2_wrapper</name>
   <version>0.1.0</version>
-  <description>Internal ROS 2 adapters for ROS-free autonomy component contracts.</description>
+  <description>Internal ROS 2 adapters for the external planner contract and common defaults.</description>
   <maintainer email="your_email@example.com">Your Name</maintainer>
   <license>Apache-2.0</license>
 

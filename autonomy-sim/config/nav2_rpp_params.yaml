@@ -144,7 +144,6 @@ controller_server:
     controller_plugins: [FollowPath]
     FollowPath:
       plugin: "autonomy_ros2_wrapper/ContractController"
-      controller_component: "pure_pursuit_controller"
       dynamic_obstacles_topic: "/rosbot2r/yolo/dgb_bb_markers"
       transform_tolerance: 0.25
 

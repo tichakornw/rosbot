@@ -20,37 +20,9 @@ autonomy_fetch_component(
 #   TARGET my_planner_lib
 # )
 
-# ---------------------------------------------------------------------------
-# CONTROL COMPONENT LINK
-# Controls: Local velocity command generation from Path2D + robot state.
-# Put a controller GitHub URL in GIT_REPOSITORY and its exported CMake library in TARGET.
-# ---------------------------------------------------------------------------
-#
-# autonomy_fetch_component(
-#   NAME my_controller
-#   GIT_REPOSITORY https://github.com/your-org/my-controller.git
-#   GIT_TAG main
-#   TARGET my_controller_lib
-# )
-
-# ---------------------------------------------------------------------------
-# PERCEPTION COMPONENT LINK
-# Controls: Image/depth processing into detections and dynamic obstacles.
-# Put a perception GitHub URL in GIT_REPOSITORY and its exported CMake library in TARGET.
-# ---------------------------------------------------------------------------
-#
-# autonomy_fetch_component(
-#   NAME my_perception
-#   GIT_REPOSITORY https://github.com/your-org/my-perception.git
-#   GIT_TAG main
-#   TARGET my_perception_lib
-# )
-
-# Requirements for every linked external component:
+# Requirements for every linked external planner component:
 #
 # Each library target appended to AUTONOMY_EXTERNAL_COMPONENT_LIBRARIES must link
-# autonomy_contracts and register components with:
+# autonomy_contracts and register a planner with:
 #
 # REGISTER_PLANNER_COMPONENT("my_planner", MyPlanner)
-# REGISTER_CONTROLLER_COMPONENT("my_controller", MyController)
-# REGISTER_PERCEPTION_COMPONENT("my_perception", MyPerception)

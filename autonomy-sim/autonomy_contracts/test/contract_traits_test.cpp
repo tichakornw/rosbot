@@ -28,6 +28,27 @@ public:
   }
 };
 
+struct CustomPlanningInput
+{
+  int request_id {0};
+};
+
+struct CustomPlanningOutput
+{
+  bool accepted {false};
+};
+
+class CustomPlanner
+{
+public:
+  CustomPlanningOutput plan(const CustomPlanningInput & input)
+  {
+    CustomPlanningOutput output;
+    output.accepted = input.request_id > 0;
+    return output;
+  }
+};
+
 class ValidController
 {
 public:
@@ -60,6 +81,11 @@ int main()
 {
   static_assert(autonomy_contracts::is_planner_component<ValidPlanner>::value);
   static_assert(!autonomy_contracts::is_planner_component<InvalidPlanner>::value);
+  static_assert(
+    autonomy_contracts::is_planner_component<
+      CustomPlanner,
+      CustomPlanningInput,
+      CustomPlanningOutput>::value);
   static_assert(autonomy_contracts::is_controller_component<ValidController>::value);
   static_assert(autonomy_contracts::is_perception_component<ValidPerception>::value);
 
@@ -77,6 +103,14 @@ int main()
   assert(controller);
   assert(perception);
   assert(!autonomy_contracts::ComponentRegistry::instance().createPlanner("missing_planner"));
+
+  autonomy_contracts::PlannerComponentModel<
+    CustomPlanner,
+    CustomPlanningInput,
+    CustomPlanningOutput> custom_planner;
+  CustomPlanningInput custom_input;
+  custom_input.request_id = 1;
+  assert(custom_planner.plan(custom_input).accepted);
 
   return 0;
 }

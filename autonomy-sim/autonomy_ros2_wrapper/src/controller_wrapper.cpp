@@ -11,7 +11,6 @@
 #include <utility>
 
 #include "autonomy_ros2_wrapper/conversions.hpp"
-#include "autonomy_reference_components/reference_components.hpp"
 #include "nav2_core/exceptions.hpp"
 #include "nav2_util/geometry_utils.hpp"
 #include "nav2_util/node_utils.hpp"
@@ -65,7 +64,6 @@ void ContractController::configure(
   const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros)
 {
   node_ = parent;
-  autonomy_reference_components::ensureReferenceComponentsLinked();
   auto node = node_.lock();
 
   tf_ = tf;
@@ -73,10 +71,6 @@ void ContractController::configure(
   name_ = std::move(name);
   logger_ = node->get_logger();
   clock_ = node->get_clock();
-
-  nav2_util::declare_parameter_if_not_declared(
-    node, name_ + ".controller_component", rclcpp::ParameterValue("pure_pursuit_controller"));
-  node->get_parameter(name_ + ".controller_component", controller_component_name_);
 
   nav2_util::declare_parameter_if_not_declared(
     node, name_ + ".dynamic_obstacles_topic",

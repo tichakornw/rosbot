@@ -1,26 +1,30 @@
 # external_components
 
-Put plain C++ component repositories here when developing them alongside this wrapper.
+Put plain C++ planner repositories here when developing them alongside this wrapper.
 These repositories should not include ROS 2 or Nav2 code. They should depend only on
-`autonomy_contracts`, implement the exact planning/control/perception contract methods,
-and register their components by name.
+`autonomy_contracts`, implement the exact planning contract method, and register their
+planner component by name.
 
-The default examples live in `reference_components`:
+The planning helpers in `autonomy_contracts` are templated for other C++ use cases, but
+this ROS wrapper instantiates the external seam as `PlanningInput2D -> PlanningOutput2D`.
+
+Planning is the only external extension point. The included external reference planner is:
 
 - `bfs_grid_planner`
+
+Control and perception use the common defaults built into `autonomy_ros2_wrapper`:
+
 - `pure_pursuit_controller`
 - `noop_perception`
 
 ## GitHub link boxes
 
-Edit `component_manifest.cmake`. It has three labeled sections:
+Edit `component_manifest.cmake`. It has one labeled section:
 
 - `PLANNING COMPONENT LINK`
-- `CONTROL COMPONENT LINK`
-- `PERCEPTION COMPONENT LINK`
 
-Each section takes a GitHub URL, a Git tag/branch/commit, and the CMake target
-exported by that external repo.
+It takes a GitHub URL, a Git tag/branch/commit, and the CMake target exported by
+that external planner repo.
 
 Example:
 

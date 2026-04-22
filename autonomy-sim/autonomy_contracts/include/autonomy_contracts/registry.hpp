@@ -14,12 +14,15 @@
 namespace autonomy_contracts
 {
 
-class IPlannerComponent
+template<typename InputT, typename OutputT>
+class IPlannerComponentFor
 {
 public:
-  virtual ~IPlannerComponent() = default;
-  virtual PlanningOutput2D plan(const PlanningInput2D & input) = 0;
+  virtual ~IPlannerComponentFor() = default;
+  virtual OutputT plan(const InputT & input) = 0;
 };
+
+using IPlannerComponent = IPlannerComponentFor<PlanningInput2D, PlanningOutput2D>;
 
 class IControllerComponent
 {
@@ -35,16 +38,19 @@ public:
   virtual PerceptionOutput2D process(const PerceptionInput2D & input) = 0;
 };
 
-template<typename T>
-class PlannerComponentModel : public IPlannerComponent
+template<
+  typename T,
+  typename InputT = PlanningInput2D,
+  typename OutputT = PlanningOutput2D>
+class PlannerComponentModel : public IPlannerComponentFor<InputT, OutputT>
 {
 public:
   PlannerComponentModel()
   {
-    validate_planner_component<T>();
+    validate_planner_component<T, InputT, OutputT>();
   }
 
-  PlanningOutput2D plan(const PlanningInput2D & input) override
+  OutputT plan(const InputT & input) override
   {
     return component_.plan(input);
   }

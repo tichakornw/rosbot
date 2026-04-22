@@ -9,16 +9,22 @@
 namespace autonomy_contracts
 {
 
-template<typename T, typename = void>
+template<
+  typename T,
+  typename InputT = PlanningInput2D,
+  typename OutputT = PlanningOutput2D,
+  typename = void>
 struct is_planner_component : std::false_type {};
 
-template<typename T>
+template<typename T, typename InputT, typename OutputT>
 struct is_planner_component<
   T,
-  std::void_t<decltype(std::declval<T &>().plan(std::declval<const PlanningInput2D &>()))>>
+  InputT,
+  OutputT,
+  std::void_t<decltype(std::declval<T &>().plan(std::declval<const InputT &>()))>>
   : std::is_same<
-      decltype(std::declval<T &>().plan(std::declval<const PlanningInput2D &>())),
-      PlanningOutput2D> {};
+      decltype(std::declval<T &>().plan(std::declval<const InputT &>())),
+      OutputT> {};
 
 template<typename T, typename = void>
 struct is_controller_component : std::false_type {};
@@ -44,12 +50,15 @@ struct is_perception_component<
       decltype(std::declval<T &>().process(std::declval<const PerceptionInput2D &>())),
       PerceptionOutput2D> {};
 
-template<typename T>
+template<
+  typename T,
+  typename InputT = PlanningInput2D,
+  typename OutputT = PlanningOutput2D>
 constexpr void validate_planner_component()
 {
   static_assert(
-    is_planner_component<T>::value,
-    "Planner components must implement: PlanningOutput2D plan(const PlanningInput2D&)");
+    is_planner_component<T, InputT, OutputT>::value,
+    "Planner components must implement: OutputT plan(const InputT&)");
   static_assert(
     std::is_default_constructible<T>::value,
     "Registered planner components must be default constructible");

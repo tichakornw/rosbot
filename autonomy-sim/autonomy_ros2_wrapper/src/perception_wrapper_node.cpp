@@ -8,7 +8,6 @@
 #include <utility>
 
 #include "autonomy_ros2_wrapper/conversions.hpp"
-#include "autonomy_reference_components/reference_components.hpp"
 #include "lifecycle_msgs/msg/transition.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/executors/single_threaded_executor.hpp"
@@ -19,7 +18,6 @@ namespace autonomy_ros2_wrapper
 PerceptionWrapperNode::PerceptionWrapperNode(const rclcpp::NodeOptions & options)
 : rclcpp_lifecycle::LifecycleNode("perception_wrapper", options)
 {
-  declare_parameter("perception_component", "noop_perception");
   declare_parameter("image_topic", "camera/image");
   declare_parameter("depth_topic", "camera/depth_image");
   declare_parameter("output_obstacles_topic", "autonomy_wrapper/dynamic_obstacles");
@@ -31,8 +29,6 @@ PerceptionWrapperNode::on_configure(const rclcpp_lifecycle::State & state)
 {
   (void)state;
 
-  get_parameter("perception_component", perception_component_name_);
-  autonomy_reference_components::ensureReferenceComponentsLinked();
   get_parameter("image_topic", image_topic_);
   get_parameter("depth_topic", depth_topic_);
   get_parameter("output_obstacles_topic", output_obstacles_topic_);

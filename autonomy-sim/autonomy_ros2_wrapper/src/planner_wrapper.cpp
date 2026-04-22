@@ -7,7 +7,6 @@
 #include <utility>
 
 #include "autonomy_ros2_wrapper/conversions.hpp"
-#include "autonomy_reference_components/reference_components.hpp"
 #include "nav2_costmap_2d/cost_values.hpp"
 #include "nav2_util/node_utils.hpp"
 #include "pluginlib/class_list_macros.hpp"
@@ -38,7 +37,6 @@ void ContractPlanner::configure(
   std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros)
 {
   node_ = parent.lock();
-  autonomy_reference_components::ensureReferenceComponentsLinked();
   name_ = std::move(name);
   tf_ = std::move(tf);
   costmap_ = costmap_ros->getCostmap();

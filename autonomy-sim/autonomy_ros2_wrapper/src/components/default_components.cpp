@@ -1,13 +1,12 @@
 #include <algorithm>
 #include <cmath>
-#include <string>
 
 #include "autonomy_contracts/autonomy_contracts.hpp"
 
-namespace autonomy_reference_components
+namespace autonomy_ros2_wrapper
 {
 
-class PurePursuitComponent
+class DefaultPurePursuitController
 {
 public:
   autonomy_contracts::ControlOutput2D computeCommand(
@@ -21,7 +20,9 @@ public:
 
     auto target = input.reference_path.poses.back();
     for (const auto & pose : input.reference_path.poses) {
-      const double distance = std::hypot(pose.x - input.robot_pose.x, pose.y - input.robot_pose.y);
+      const double distance = std::hypot(
+        pose.x - input.robot_pose.x,
+        pose.y - input.robot_pose.y);
       if (distance >= lookahead_dist_) {
         target = pose;
         break;
@@ -35,9 +36,13 @@ public:
     const double local_y = -std::sin(heading) * dx + std::cos(heading) * dy;
 
     if (local_x > 0.0) {
-      const double curvature = 2.0 * local_y / std::max(0.001, local_x * local_x + local_y * local_y);
+      const double curvature =
+        2.0 * local_y / std::max(0.001, local_x * local_x + local_y * local_y);
       output.command.linear_x = desired_linear_vel_;
-      output.command.angular_z = clamp(desired_linear_vel_ * curvature, -max_angular_vel_, max_angular_vel_);
+      output.command.angular_z = clamp(
+        desired_linear_vel_ * curvature,
+        -max_angular_vel_,
+        max_angular_vel_);
     } else {
       output.command.linear_x = 0.0;
       output.command.angular_z = max_angular_vel_;
@@ -58,8 +63,23 @@ private:
   double max_angular_vel_ {1.0};
 };
 
-}  // namespace autonomy_reference_components
+class DefaultNoopPerception
+{
+public:
+  autonomy_contracts::PerceptionOutput2D process(
+    const autonomy_contracts::PerceptionInput2D & input)
+  {
+    (void)input;
+    autonomy_contracts::PerceptionOutput2D output;
+    output.success = true;
+    return output;
+  }
+};
+
+}  // namespace autonomy_ros2_wrapper
 
 REGISTER_CONTROLLER_COMPONENT(
   "pure_pursuit_controller",
-  autonomy_reference_components::PurePursuitComponent)
+  autonomy_ros2_wrapper::DefaultPurePursuitController)
+
+REGISTER_PERCEPTION_COMPONENT("noop_perception", autonomy_ros2_wrapper::DefaultNoopPerception)
